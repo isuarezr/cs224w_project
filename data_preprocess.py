@@ -21,12 +21,13 @@ print "Loaded data"
 # indices = np.random.randint(0, data.shape[0], data.shape[0]/100)
 # data = data[indices]
 # data = np.load(data_savefile)
+min_unique_visits = 60
 loc_to_visits = defaultdict(set)
 for row in data:
 	loc_to_visits[row[location_id_idx]].add(row[user_id_idx])
-remove_locs = set([loc for loc in loc_to_visits if len(loc_to_visits[loc]) < 5])
-print "removed low frequency locs"
+remove_locs = set([loc for loc in loc_to_visits if len(loc_to_visits[loc]) < min_unique_visits])
 data = [row for row in data if row[location_id_idx] not in remove_locs]
+print "removed low frequency locs"
 all_zeros = re.compile('0+')
 data = [list(row) for row in data if not all_zeros.match(row[location_id_idx])]
 convert_timestamp(data)
