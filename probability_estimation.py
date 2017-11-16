@@ -1,17 +1,19 @@
 import numpy as np
 import snap
-from collections import defaultdict
+from collections import defaultdict, Counter
+import matplotlib.pyplot as plt
 import cPickle as pk
 
-data_savefile = 'sampled_brightkite.npy'
+data_savefile = 'train_sampled_brightkite.npy'
 socialGraphFilename = 'Brightkite_edges.txt'
+# data_savefile = 'train_small.npy'
+# socialGraphFilename = 'small_edges.txt'
 user_id_idx = 0
 timestamp_idx = 1
 location_id_idx = 2
 
 data = np.load(data_savefile)
 G = snap.LoadEdgeList(snap.PUNGraph, socialGraphFilename)
-
 
 ### LEARNING PHASE 1
 
@@ -24,6 +26,7 @@ def learning_phase_1(G, data):
 
 	curr_action = data[0][location_id_idx]
 	current_table = set()
+	current_table_users = set()
 	i = 0
 	n = len(data)
 	for row in data:
@@ -31,17 +34,20 @@ def learning_phase_1(G, data):
 		if i % 10000 == 0:
 			print "Finished with iter {} of {}".format(i, n)
 			print "tau has {} entries".format(len(tau.keys()))
-		user = row[user_id_idx]
+		user = int(row[user_id_idx])
 		timestamp = row[timestamp_idx]
 		action = row[location_id_idx]
 		if action != curr_action:
 			# Move to next action
 			curr_action = action
+			current_table_users = set()
 			current_table = set()
+		if user in current_table_users:
+			continue
 		Au[user] += 1
 		parents = set()
 		for previous_row in current_table:
-			previous_user, previous_action, previous_timestamp = previous_row
+			previous_user, previous_timestamp = previous_row
 			if G.IsEdge(int(user), int(previous_user)):
 				if (timestamp - previous_timestamp).days > 0:
 					Av2u[(previous_user, user)] += 1
@@ -52,17 +58,11 @@ def learning_phase_1(G, data):
 				Avnu[(previous_user,user)] += 1
 		for p in parents:
 			credit[(p, user, curr_action)] = 1.0/len(parents)
-		current_table.add((user, action, timestamp))
+		if user not in current_table_users:
+			current_table_users.add(user)
+			current_table.add((user, timestamp))
 	tau = {(v,u):tau[(v,u)][0] for (v,u) in tau}
 	return Au, Av2u, Avnu, tau,	credit
-
-
-dicts = learning_phase_1(G, data)
-names = ['au.p', 'av2u.p', 'avnu.p', 'tau.p', 'credit.p']
-for d, n in zip(dicts, names):
-	f = open(n, 'w')
-	pickle.dump(d, f)
-	f.close()
 
 def learning_phase_2(G, data, tau):
 	### LEARNING PHASE 2
@@ -77,7 +77,7 @@ def learning_phase_2(G, data, tau):
 		i += 1
 		if i % 10000 == 0:
 			print "Finished with iter {} of {}".format(i, n)
-		user = row[user_id_idx]
+		user = int(row[user_id_idx])
 		timestamp = row[timestamp_idx]
 		action = row[location_id_idx]
 		if action != curr_action:
@@ -98,3 +98,20 @@ def learning_phase_2(G, data, tau):
 			infl_u[user].add(action)
 		current_table.add((user, action, timestamp))
 	infl_u = {user:len(infl_u[user]) for user in infl_u}
+	return Av2u_tau, credit_tau, infl_u
+
+dicts = learning_phase_1(G, data)
+print "Finished learning phase 1"
+names = ['au.p', 'av2u.p', 'avnu.p', 'tau.p', 'credit.p']
+for d, n in zip(dicts, names):
+	f = open(n, 'w')
+	pk.dump(d, f)
+	f.close()
+
+# dicts = learning_phase_2(G, data, dicts[3])
+# print "Finished learning phase 2"
+# names = ['av2u_tau.p', 'credit_tau.p', 'infl_u.p']
+# for d, n in zip(dicts, names):
+# 	f = open(n, 'w')
+# 	pk.dump(d, f)
+# 	f.close()
