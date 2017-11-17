@@ -82,8 +82,25 @@ def evaluate_basic(G, test_data, p_vu, thetas, au_dict):
 				pv[nbr] = p_vu[(user,nbr)]
 				perform[nbr] = 0
 	update_results(results_table, perform, pv, thetas)
-	print Counter(perform.values())
 	return TP, FN, FP, TN
+
+def plot_ROC(TP_l, FN_l, FP_l, TN_l, thetas, name_l):
+	
+	plt.xlabel("False positive rate")
+	plt.ylabel("True positive rate")
+	plt.title("ROC Curve for Brightkite probabilities")
+	handles = []
+	for i in range(len(name_l)):
+		TPR = []
+		FPR = []
+		for theta in thetas:
+			TPR.append(float(TP_l[i][theta]) / (TP_l[i][theta] + FN_l[i][theta]))
+			FPR.append(float(FP_l[i][theta]) / (FP_l[i][theta] + TN_l[i][theta]))
+		next, = plt.plot(FPR, TPR, label=name_l[i])
+		handles.append(next)
+	plt.legend(handles=handles)
+	plt.savefig("ROC_brightkite.png")
+	plt.show()
 
 test_savefile = 'test_sampled_brightkite.npy'
 socialGraphFilename = 'Brightkite_edges.txt'
@@ -108,45 +125,22 @@ f = open('avnu.p', 'r')
 avnu_dict = pk.load(f)
 f.close()
 
-p_vu = bernoulli(G, av2u_dict, au_dict)
-# p_vu = jaccard(G, av2u_dict, au_dict, avnu_dict)
+
 theta_step = 0.05
 start = 0.0
 end = 1.0
+thetas = list(np.arange(0.0, 1., 0.05))
 
-thetas = list(np.arange(0.0, 1e-8, 1e-10))
-thetas += list(np.arange(0.0, 1., 0.05))
+p_vu_l = []
+name_l = ['bernoulli', 'jaccard']
+TP_l, FN_l, FP_l, TN_l = [], [], [], []
+p_vu_l.append(bernoulli(G, av2u_dict, au_dict))
+p_vu_l.append(jaccard(G, av2u_dict, au_dict, avnu_dict))
+for p_vu in p_vu_l:
+	TP, FN, FP, TN = evaluate_basic(G, test_data, p_vu, thetas, au_dict)
+	TP_l.append(TP)
+	FN_l.append(FN)
+	FP_l.append(FP)
+	TN_l.append(TN)
 
-TP, FN, FP, TN = evaluate_basic(G, test_data, p_vu, thetas, au_dict)
-
-f = open('TP.p', 'w')
-pk.dump(TP, f)
-f.close()
-
-f = open('FN.p', 'w')
-pk.dump(FN, f)
-f.close()
-
-f = open('FP.p', 'w')
-pk.dump(FP, f)
-f.close()
-
-f = open('TN.p', 'w')
-pk.dump(TN, f)
-f.close()
-
-TPR = []
-FPR = []
-
-for theta in thetas:
-	TPR.append(float(TP[theta]) / (TP[theta] + FN[theta]))
-	FPR.append(float(FP[theta]) / (FP[theta] + TN[theta]))
-
-plt.scatter(FPR, TPR)
-plt.show()
-
-c = 0
-for k, v in p_vu.iteritems():
-	if v == 1:
-		c += 1
-print c
+plot_ROC(TP_l, FN_l, FP_l, TN_l, thetas, name_l)
