@@ -102,8 +102,8 @@ def plot_ROC(TP_l, FN_l, FP_l, TN_l, thetas, name_l):
 	plt.savefig("ROC_brightkite.png")
 	plt.show()
 
-test_savefile = 'test_sampled_brightkite.npy'
-socialGraphFilename = 'Brightkite_edges.txt'
+test_savefile = '../data/test_sampled_brightkite.npy'
+socialGraphFilename = '../data/Brightkite_edges.txt'
 # test_savefile = 'test_small.npy'
 # socialGraphFilename = 'small_edges.txt'
 user_id_idx = 0
@@ -113,15 +113,15 @@ location_id_idx = 2
 test_data = np.load(test_savefile)
 G = snap.LoadEdgeList(snap.PUNGraph, socialGraphFilename)
 
-f = open('av2u.p', 'r')
+f = open('../saved_dictionaries/av2u.p', 'r')
 av2u_dict = pk.load(f)
 f.close()
 
-f = open('au.p', 'r')
+f = open('../saved_dictionaries/au.p', 'r')
 au_dict = pk.load(f)
 f.close()
 
-f = open('avnu.p', 'r')
+f = open('../saved_dictionaries/avnu.p', 'r')
 avnu_dict = pk.load(f)
 f.close()
 
@@ -136,11 +136,14 @@ name_l = ['bernoulli', 'jaccard']
 TP_l, FN_l, FP_l, TN_l = [], [], [], []
 p_vu_l.append(bernoulli(G, av2u_dict, au_dict))
 p_vu_l.append(jaccard(G, av2u_dict, au_dict, avnu_dict))
-for p_vu in p_vu_l:
+for p_vu, n in zip(p_vu_l, name_l):
+	f = open('../saved_dictionaries/weights-' + n + '.p', 'w')
+	pk.dump(p_vu, f)
+	f.close()
 	TP, FN, FP, TN = evaluate_basic(G, test_data, p_vu, thetas, au_dict)
 	TP_l.append(TP)
 	FN_l.append(FN)
 	FP_l.append(FP)
 	TN_l.append(TN)
 
-plot_ROC(TP_l, FN_l, FP_l, TN_l, thetas, name_l)
+# plot_ROC(TP_l, FN_l, FP_l, TN_l, thetas, name_l)
