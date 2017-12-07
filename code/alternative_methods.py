@@ -31,13 +31,12 @@ def getHighestClusteringCoefficientInfleunceSet(G, k):
 	return [pair[1] for pair in k_best]
 
 def getRandomInfluenceSet(G, k):
-	random_set = set()
+	random_set = []
 	Rnd = snap.TRnd(42)
 	Rnd.Randomize()
 	for i in range(k):
-		random_set.add(G.GetRndNId(Rnd))
+		random_set.append(G.GetRndNId(Rnd))
 	return random_set
-
 
 slice_name = '../data/sliced_graph.txt'
 weights_name = '../saved_dictionaries/sliced-weights.p'
@@ -45,55 +44,65 @@ weights_name = '../saved_dictionaries/sliced-weights.p'
 if os.path.isfile(slice_name):
 	G_prime = snap.LoadEdgeList(snap.PUNGraph, slice_name)
 	f = open(weights_name, 'r')
-	weights = pk.load(f)
+	weights_prime = pk.load(f)
 	f.close()
 else:
 	G = snap.LoadEdgeList(snap.PUNGraph, '../data/Brightkite_edges.txt')
-	f = open('../saved_dictionaries/weights-jaccard.p', 'r')
+	f = open('../saved_dictionaries/weights-bernoulli.p', 'r')
 	weights = pk.load(f)
 	f.close()
 	checkin_data_filename = '../data/Brightkite_totalCheckins.txt'
-	query_location = (39.05, -94.59)
-	max_distance = 40
+	query_location = (41.67, -72.14)
+	max_distance = 100
 	G_prime, weights_prime = get_graph_slice(G, weights, checkin_data_filename, query_location, max_distance)
 	snap.SaveEdgeList(G_prime, slice_name)
+	G_prime = snap.LoadEdgeList(snap.PUNGraph, slice_name) #easiest way to get rid of 0 degree nodes
 	f = open(weights_name, 'w')
 	pk.dump(weights_prime, f)
 	f.close()
 
 def compare_methods(G, weights, max_k):
-	num_trials = 100
+	print "G has {} nodes".format(G.GetNodes())
+	num_trials = 1000
 
 	degree_list = [0]
 	cluster_list = [0]
 	central_list = [0]
 	random_list = [0]
 	greedy_list = [0]
+	# slow_greedy_list = [0]
 
-
-	degree_m = getHighestDegreeInfluenceSet(G_prime, max_k)
-	cluster_m = getHighestClusteringCoefficientInfleunceSet(G_prime, max_k)
-	central_m = getHighestBetweenessCentralityInfluenceSet(G_prime, max_k)
-	greedy_m = hill_climb(G, weights, max_k)
+	degree_m = getHighestDegreeInfluenceSet(G, max_k)
+	cluster_m = getHighestClusteringCoefficientInfleunceSet(G, max_k)
+	central_m = getHighestBetweenessCentralityInfluenceSet(G, max_k)
+	random_m = getRandomInfluenceSet(G, max_k)
+	greedy_m = CELF(G, weights, max_k, num_trials)
+	# slow_greedy_m = hill_climb(G, weights, max_k, num_trials)
 
 	for k in range(1, max_k+1):
 		degree = set(degree_m[:k])
 		cluster = set(cluster_m[:k])
 		central = set(central_m[:k])
+		random = set(random_m[:k])
 		greedy = set(greedy_m[:k])
-		random = getRandomInfluenceSet(G_prime, k)
+		# slow_greedy = set(slow_greedy_m[:k])
 
 		degree_list.append(computeAverageInfluenceSetSize(G, weights, degree, num_trials))
 		cluster_list.append(computeAverageInfluenceSetSize(G, weights, cluster, num_trials))
 		central_list.append(computeAverageInfluenceSetSize(G, weights, central, num_trials))
 		random_list.append(computeAverageInfluenceSetSize(G, weights, random, num_trials))
-		greedy_list.append(computeAverageInfluenceSetSize(G, weights, greedy, num_trials))
+		greedy_list.append(computeAverageInfluenceSetSize(G, weights, greedy, num_trials, verbose=True))
+		# slow_greedy_list.append(computeAverageInfluenceSetSize(G, weights, slow_greedy, num_trials))
 
 	degree_h, = plt.plot(degree_list, label='High Degree')
 	cluster_h, = plt.plot(cluster_list, label='High Clust. Coef.')
 	central_h, = plt.plot(central_list, label='High Betw. Cent.')
 	random_h, = plt.plot(random_list, label='Random')
 	greedy_h, = plt.plot(greedy_list, label='Greedy Alg.')
+	# slow_greedy_h, = plt.plot(greedy_list, label='Slow Greedy Alg.')
+
+	print greedy_list
+	# print slow_greedy_list
 
 	plt.xlabel("Target Set Size")
 	plt.ylabel("Active Set Size")
@@ -102,4 +111,5 @@ def compare_methods(G, weights, max_k):
 	plt.savefig("methods_comparison.png")
 	plt.show()
 
-compare_methods(G_prime, weights_prime, 30)
+
+compare_methods(G_prime, weights_prime, 50)

@@ -27,9 +27,6 @@ def get_user_locations(checkin_data_filename):
 	iters = 0
 	for user in user_to_locations:
 		user_to_home[user] = compute_user_location(user_to_locations[user])
-		iters += 1
-		if iters % 100 == 0:
-			print "Done with {} iters of {}".format(iters, num_iters)
 	return user_to_home
 
 def compute_user_location(locations):
@@ -55,6 +52,6 @@ def get_graph_slice(G, weights, checkin_data_filename, query_location, max_dista
 	sliced_weights = {}
 	for u,v in weights:
 		if u in sliced_users and v in sliced_users:
-			sliced_weights[(u,v)] = weights[(u,v)]**0.25
+			sliced_weights[(u,v)] = weights[(u,v)]
 
 	return G_prime, sliced_weights
