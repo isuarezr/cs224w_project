@@ -39,7 +39,7 @@ def compute_user_location(locations):
 	return (latitude, longitude)
 
 #return a slice of G based on the query location
-def get_graph_slice(G, checkin_data_filename, query_location, max_distance):
+def get_graph_slice(G, weights, checkin_data_filename, query_location, max_distance):
 	user_locations = get_user_locations(checkin_data_filename)
 	user_distance_pairs = [(user, get_distance_km(query_location, user_locations[user])) for user in user_locations]
 	far_users = [user for user, dist in user_distance_pairs if dist > max_distance]
@@ -50,10 +50,11 @@ def get_graph_slice(G, checkin_data_filename, query_location, max_distance):
 	old_G_size = G.GetNodes()
 	snap.DelNodes(G_prime, V)
 	assert G.GetNodes() == old_G_size
-	return G_prime
 
-# G = snap.LoadEdgeList(snap.PUNGraph, '../data/Brightkite_edges.txt')
-# checkin_data_filename = '../data/Brightkite_totalCheckins.txt'
-# query_location = (39.05, -94.59)
-# max_distance = 50
-# G_prime = get_graph_slice(G, checkin_data_filename, query_location, max_distance)
+	sliced_users = set([node.GetId() for node in G_prime.Nodes()])
+	sliced_weights = {}
+	for u,v in weights:
+		if u in sliced_users and v in sliced_users:
+			sliced_weights[(u,v)] = weights[(u,v)]**0.25
+
+	return G_prime, sliced_weights

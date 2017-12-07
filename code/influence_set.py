@@ -74,20 +74,21 @@ def compute_average_influence_set(G, weights, nodeIds, numTrials, defaultWeight=
     return average_influence_set
 
 #greedy hill climbing algorithm
-def hill_climb(G, weights, k, num_trials):
+def hill_climb(G, weights, k, num_trials=100):
     assert k < G.GetNodes()
-    S = set()
+    S = list()
     for i in range(k):
+        print "Finding node {} to add to influence set".format(i)
         best_size = -1
         best_node_id = None
         for node in G.Nodes():
-            if node in S:
-                continue
             node_id = node.GetId()
-            S_prime = S.union(set(node_id))
+            if node_id in S:
+                continue
+            S_prime = set(S).union(set([node_id]))
             infl_set_size = computeAverageInfluenceSetSize(G, weights, S_prime, num_trials)
             if infl_set_size > best_size:
                 best_size = infl_set_size
                 best_node_id = node_id
-        S.add(best_node_id)
+        S.append(best_node_id)
     return S
