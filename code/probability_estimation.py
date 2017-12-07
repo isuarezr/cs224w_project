@@ -6,17 +6,16 @@ import cPickle as pk
 
 data_savefile = '../data/train_sampled_brightkite.npy'
 socialGraphFilename = '../data/Brightkite_edges.txt'
-# data_savefile = 'train_small.npy'
-# socialGraphFilename = 'small_edges.txt'
+
 user_id_idx = 0
 timestamp_idx = 1
 location_id_idx = 2
 
 data = np.load(data_savefile)
-G = snap.LoadEdgeList(snap.PUNGraph, socialGraphFilename)
+# G = snap.LoadEdgeList(snap.PUNGraph, socialGraphFilename)
+G = None
 
 ### LEARNING PHASE 1
-
 def learning_phase_1(G, data):
 	Au = defaultdict(int)
 	Av2u = defaultdict(int)
@@ -48,7 +47,7 @@ def learning_phase_1(G, data):
 		parents = set()
 		for previous_row in current_table:
 			previous_user, previous_timestamp = previous_row
-			if G.IsEdge(int(user), int(previous_user)):
+			if G is None or G.IsEdge(int(user), int(previous_user)):
 				Av2u[(previous_user, user)] += 1
 				parents.add(previous_user)
 				# Instead of average, we were lazy and just did max.
@@ -86,7 +85,7 @@ def learning_phase_2(G, data, tau):
 		parents = set()
 		for previous_row in current_table:
 			previous_user, previous_action, previous_timestamp = previous_row
-			if G.IsEdge(int(user), int(previous_user)):
+			if G is None or G.IsEdge(int(user), int(previous_user)):
 				if 0 < (timestamp - previous_timestamp).days < tau[(previous_user, user)]:
 					Av2u_tau[(previous_user, user)] += 1
 					parents.add(previous_user)
@@ -102,6 +101,13 @@ def learning_phase_2(G, data, tau):
 dicts = learning_phase_1(G, data)
 print "Finished learning phase 1"
 names = ['au.p', 'av2u.p', 'avnu.p', 'tau.p', 'credit.p']
+if G is None:
+	for i in range(len(names)):
+		names[i] = 'null-graph-' + names[i]
+
+for i in range(len(names)):
+	names[i] = '../saved_dictionaries/' + names[i]
+	
 for d, n in zip(dicts, names):
 	f = open(n, 'w')
 	pk.dump(d, f)
