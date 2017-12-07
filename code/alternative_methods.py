@@ -53,7 +53,7 @@ else:
 	f.close()
 	checkin_data_filename = '../data/Brightkite_totalCheckins.txt'
 	query_location = (41.67, -72.14)
-	max_distance = 100
+	max_distance = 500
 	G_prime, weights_prime = get_graph_slice(G, weights, checkin_data_filename, query_location, max_distance)
 	snap.SaveEdgeList(G_prime, slice_name)
 	G_prime = snap.LoadEdgeList(snap.PUNGraph, slice_name) #easiest way to get rid of 0 degree nodes
@@ -100,9 +100,6 @@ def compare_methods(G, weights, max_k):
 	random_h, = plt.plot(random_list, label='Random')
 	greedy_h, = plt.plot(greedy_list, label='Greedy Alg.')
 	# slow_greedy_h, = plt.plot(greedy_list, label='Slow Greedy Alg.')
-
-	print greedy_list
-	# print slow_greedy_list
 
 	plt.xlabel("Target Set Size")
 	plt.ylabel("Active Set Size")

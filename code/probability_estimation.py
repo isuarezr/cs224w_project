@@ -4,8 +4,8 @@ from collections import defaultdict, Counter
 import matplotlib.pyplot as plt
 import cPickle as pk
 
-data_savefile = 'train_sampled_brightkite.npy'
-socialGraphFilename = 'Brightkite_edges.txt'
+data_savefile = '../data/train_sampled_brightkite.npy'
+socialGraphFilename = '../data/Brightkite_edges.txt'
 # data_savefile = 'train_small.npy'
 # socialGraphFilename = 'small_edges.txt'
 user_id_idx = 0
@@ -49,12 +49,11 @@ def learning_phase_1(G, data):
 		for previous_row in current_table:
 			previous_user, previous_timestamp = previous_row
 			if G.IsEdge(int(user), int(previous_user)):
-				if (timestamp - previous_timestamp).days > 0:
-					Av2u[(previous_user, user)] += 1
-					parents.add(previous_user)
-					# Instead of average, we were lazy and just did max.
-					val, count = tau[(previous_user, user)]
-					tau[(previous_user, user)] = (float((val * count) + (timestamp - previous_timestamp).days) / (count + 1), count + 1)
+				Av2u[(previous_user, user)] += 1
+				parents.add(previous_user)
+				# Instead of average, we were lazy and just did max.
+				val, count = tau[(previous_user, user)]
+				tau[(previous_user, user)] = (float((val * count) + (timestamp - previous_timestamp).days) / (count + 1), count + 1)
 				Avnu[(previous_user,user)] += 1
 		for p in parents:
 			credit[(p, user, curr_action)] = 1.0/len(parents)

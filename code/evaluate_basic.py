@@ -4,11 +4,11 @@ from collections import defaultdict, Counter
 import matplotlib.pyplot as plt
 import cPickle as pk
 
-def bernoulli(G, av2u_dict, au_dict):
+def bernoulli(G, av2u_dict, au_dict, lam=0):
 	p_vu = defaultdict(float)
 	for (v,u) in av2u_dict:
 		if au_dict[v] > 1:
-			p_vu[(int(v),int(u))] = float(av2u_dict[(v,u)]) / au_dict[v] 
+			p_vu[(int(v),int(u))] = float(av2u_dict[(v,u)]+lam) / (2*lam+au_dict[v]) 
 	return p_vu
 
 def jaccard(G, av2u_dict, au_dict, avnu_dict):
@@ -134,7 +134,7 @@ thetas = list(np.arange(0.0, 1., 0.05))
 p_vu_l = []
 name_l = ['bernoulli', 'jaccard']
 TP_l, FN_l, FP_l, TN_l = [], [], [], []
-p_vu_l.append(bernoulli(G, av2u_dict, au_dict))
+p_vu_l.append(bernoulli(G, av2u_dict, au_dict, lam=1))
 p_vu_l.append(jaccard(G, av2u_dict, au_dict, avnu_dict))
 for p_vu, n in zip(p_vu_l, name_l):
 	f = open('../saved_dictionaries/weights-' + n + '.p', 'w')
@@ -146,4 +146,4 @@ for p_vu, n in zip(p_vu_l, name_l):
 	FP_l.append(FP)
 	TN_l.append(TN)
 
-# plot_ROC(TP_l, FN_l, FP_l, TN_l, thetas, name_l)
+plot_ROC(TP_l, FN_l, FP_l, TN_l, thetas, name_l)

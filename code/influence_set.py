@@ -53,7 +53,8 @@ def computeAverageInfluenceSetSize(G, weights, nodeIds, numTrials, defaultWeight
         averageSize += gain
         gain_list.append(gain)
     if verbose and len(gain_list) > 1:
-        print "Std dev with {} trials with {} nodes: {}".format(numTrials, len(nodeIds), np.std(gain_list))
+        print "With {} trials and {} node: mean = {}, std_dev = {}". \
+                format(numTrials, len(nodeIds), np.mean(gain_list), np.std(gain_list))
     return averageSize / float(numTrials)
 
 #greedy hill climbing algorithm
