@@ -105,6 +105,7 @@ def compare_methods(G, weights, max_k):
 	plt.ylabel("Active Set Size")
 
 	plt.legend(handles=[degree_h, cluster_h, central_h, random_h, greedy_h])
+	# plt.legend([degree_h, cluster_h, central_h, random_h, greedy_h])
 	plt.savefig("methods_comparison.png")
 	plt.show()
 

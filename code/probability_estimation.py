@@ -17,10 +17,11 @@ G = snap.LoadEdgeList(snap.PUNGraph, socialGraphFilename)
 
 ### LEARNING PHASE 1
 
-def learning_phase_1(G, data):
+def learning_phase_1(G, data, single_influence=True):
 	Au = defaultdict(int)
 	Av2u = defaultdict(int)
 	Avnu = defaultdict(int)
+	Av2u_repeat = defaultdict(int)
 	tau = defaultdict(lambda : (0., 0))
 	credit = {}
 
@@ -42,14 +43,17 @@ def learning_phase_1(G, data):
 			curr_action = action
 			current_table_users = set()
 			current_table = set()
-		if user in current_table_users:
-			continue
+		if single_influence:
+			if user in current_table_users:
+				continue
 		Au[user] += 1
 		parents = set()
 		for previous_row in current_table:
 			previous_user, previous_timestamp = previous_row
 			if G.IsEdge(int(user), int(previous_user)):
 				Av2u[(previous_user, user)] += 1
+				if not single_influence and user in current_table_users:
+					Av2u_repeat[(previous_user, user)] += 1
 				parents.add(previous_user)
 				# Instead of average, we were lazy and just did max.
 				val, count = tau[(previous_user, user)]
@@ -61,7 +65,7 @@ def learning_phase_1(G, data):
 			current_table_users.add(user)
 			current_table.add((user, timestamp))
 	tau = {(v,u):tau[(v,u)][0] for (v,u) in tau}
-	return Au, Av2u, Avnu, tau,	credit
+	return Au, Av2u, Avnu, tau,	credit, Av2u_repeat
 
 def learning_phase_2(G, data, tau):
 	### LEARNING PHASE 2
@@ -99,10 +103,12 @@ def learning_phase_2(G, data, tau):
 	infl_u = {user:len(infl_u[user]) for user in infl_u}
 	return Av2u_tau, credit_tau, infl_u
 
-dicts = learning_phase_1(G, data)
+# dicts = learning_phase_1(G, data)
+dicts = learning_phase_1(G, data, single_influence=False)
 print "Finished learning phase 1"
-names = ['au.p', 'av2u.p', 'avnu.p', 'tau.p', 'credit.p']
+names = ['au.p', 'av2u.p', 'avnu.p', 'tau.p', 'credit.p', 'av2u_repeat.p']
 for d, n in zip(dicts, names):
+	n = '../saved_dictionaries/' + n
 	f = open(n, 'w')
 	pk.dump(d, f)
 	f.close()

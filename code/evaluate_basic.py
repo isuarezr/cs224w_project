@@ -4,11 +4,14 @@ from collections import defaultdict, Counter
 import matplotlib.pyplot as plt
 import cPickle as pk
 
-def bernoulli(G, av2u_dict, au_dict, lam=0):
+def bernoulli(G, av2u_dict, au_dict, av2u_repeat=None, lam=0):
 	p_vu = defaultdict(float)
 	for (v,u) in av2u_dict:
 		if au_dict[v] > 1:
-			p_vu[(int(v),int(u))] = float(av2u_dict[(v,u)]+lam) / (2*lam+au_dict[v]) 
+			if av2u_repeat is None:
+				p_vu[(int(v),int(u))] = float(av2u_dict[(v,u)]+lam) / (2*lam+au_dict[v]) 
+			else:
+				p_vu[(int(v),int(u))] = float(av2u_dict[(v,u)]+lam) / (2*lam+au_dict[v]+av2u_repeat[(v,u)])
 	return p_vu
 
 def jaccard(G, av2u_dict, au_dict, avnu_dict):
@@ -98,6 +101,7 @@ def plot_ROC(TP_l, FN_l, FP_l, TN_l, thetas, name_l):
 			FPR.append(float(FP_l[i][theta]) / (FP_l[i][theta] + TN_l[i][theta]))
 		next, = plt.plot(FPR, TPR, label=name_l[i])
 		handles.append(next)
+	# plt.legend(handles)
 	plt.legend(handles=handles)
 	plt.savefig("ROC_brightkite.png")
 	plt.show()
@@ -125,6 +129,10 @@ f = open('../saved_dictionaries/avnu.p', 'r')
 avnu_dict = pk.load(f)
 f.close()
 
+f = open('../saved_dictionaries/av2u_repeat.p', 'r')
+av2u_repeat_dict = pk.load(f)
+f.close()
+
 
 theta_step = 0.05
 start = 0.0
@@ -134,7 +142,8 @@ thetas = list(np.arange(0.0, 1., 0.05))
 p_vu_l = []
 name_l = ['bernoulli', 'jaccard']
 TP_l, FN_l, FP_l, TN_l = [], [], [], []
-p_vu_l.append(bernoulli(G, av2u_dict, au_dict, lam=1))
+# p_vu_l.append(bernoulli(G, av2u_dict, au_dict, None, lam=1))
+p_vu_l.append(bernoulli(G, av2u_dict, au_dict, av2u_repeat_dict, lam=0))
 p_vu_l.append(jaccard(G, av2u_dict, au_dict, avnu_dict))
 for p_vu, n in zip(p_vu_l, name_l):
 	f = open('../saved_dictionaries/weights-' + n + '.p', 'w')
