@@ -4,7 +4,11 @@ from collections import defaultdict, Counter
 import matplotlib.pyplot as plt
 import cPickle as pk
 
+<<<<<<< HEAD
 def bernoulli(G, av2u_dict, au_dict, av2u_repeat=None, lam=0):
+=======
+def bernoulli(av2u_dict, au_dict, lam=0):
+>>>>>>> dc9eb16a90492ee0da6cd1d72799b3f6d4ba8974
 	p_vu = defaultdict(float)
 	for (v,u) in av2u_dict:
 		if au_dict[v] > 1:
@@ -14,7 +18,7 @@ def bernoulli(G, av2u_dict, au_dict, av2u_repeat=None, lam=0):
 				p_vu[(int(v),int(u))] = float(av2u_dict[(v,u)]+lam) / (2*lam+au_dict[v]+av2u_repeat[(v,u)])
 	return p_vu
 
-def jaccard(G, av2u_dict, au_dict, avnu_dict):
+def jaccard(av2u_dict, au_dict, avnu_dict):
 	p_vu = defaultdict(float)
 	for (v,u) in av2u_dict:
 		v_or_u = au_dict[v]+au_dict[u]- (avnu_dict[(v,u)]+avnu_dict[(u,v)])
@@ -117,15 +121,27 @@ location_id_idx = 2
 test_data = np.load(test_savefile)
 G = snap.LoadEdgeList(snap.PUNGraph, socialGraphFilename)
 
-f = open('../saved_dictionaries/av2u.p', 'r')
+# f = open('../saved_dictionaries/av2u.p', 'r')
+# av2u_dict = pk.load(f)
+# f.close()
+
+# f = open('../saved_dictionaries/au.p', 'r')
+# au_dict = pk.load(f)
+# f.close()
+
+# f = open('../saved_dictionaries/avnu.p', 'r')
+# avnu_dict = pk.load(f)
+# f.close()
+
+f = open('../saved_dictionaries/null-graph-av2u.p', 'r')
 av2u_dict = pk.load(f)
 f.close()
 
-f = open('../saved_dictionaries/au.p', 'r')
+f = open('../saved_dictionaries/null-graph-au.p', 'r')
 au_dict = pk.load(f)
 f.close()
 
-f = open('../saved_dictionaries/avnu.p', 'r')
+f = open('../saved_dictionaries/null-graph-avnu.p', 'r')
 avnu_dict = pk.load(f)
 f.close()
 
