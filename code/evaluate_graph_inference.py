@@ -1,5 +1,5 @@
 import snap
-
+import matplotlib.pyplot as plt
 
 # Computes and returns F1 score with respect to
 # edges in G and in G_prime
@@ -28,12 +28,31 @@ def compare_true_versus_inferred(G, G_prime):
         if not G.IsEdge(nodeId1, nodeId2):
             TN += 1.0
     
-    precision = TP / (TP + FP)
-    recall = TP / (TP + FN)
+    #precision = TP / (TP + FP)
+    #recall = TP / (TP + FN)
     F1_score = 2.0 * TP / (2 * TP + FN + FP)
     #print "TP: {}, FN: {}, FP: {}".format(TP, FN, FP)
     #print "Precision: {}, Recall: {}".format(precision, recall)
-    return F1_score
+    return f1_score
+
+
+def plot_threshold_against_f1(G, weights, steps, name):
+    thresholds = []
+    f1_scores = []
+    for i in range(0, steps):
+        threshold = i / float(steps)
+        G_prime = infer_graph(weights, threshold)
+        f1_score = compare_true_versus_inferred(G, G_prime)
+        
+        thresholds.append(threshold)
+        f1_scores.append(f1_score)
+    
+	plt.title("F1 Score Distribution for Thresholds".format(name))
+	plt.xlabel("Thresholds")
+	plt.ylabel("F1 Score (2TP / (2TP + FN + FP))")
+	plt.plot(thresholds, f1_scores)
+	plt.savefig("{}_f1_score_dist.png".format(name))
+	plt.show()
 
 def infer_graph(weights, threshold):
     assert 0 <= threshold < 1
