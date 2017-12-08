@@ -109,8 +109,7 @@ def plot_ROC(TP_l, FN_l, FP_l, TN_l, thetas, name_l):
 
 test_savefile = '../data/test_sampled_brightkite.npy'
 socialGraphFilename = '../data/Brightkite_edges.txt'
-# test_savefile = 'test_small.npy'
-# socialGraphFilename = 'small_edges.txt'
+
 user_id_idx = 0
 timestamp_idx = 1
 location_id_idx = 2
@@ -118,29 +117,29 @@ location_id_idx = 2
 test_data = np.load(test_savefile)
 G = snap.LoadEdgeList(snap.PUNGraph, socialGraphFilename)
 
-# f = open('../saved_dictionaries/av2u.p', 'r')
-# av2u_dict = pk.load(f)
-# f.close()
-
-# f = open('../saved_dictionaries/au.p', 'r')
-# au_dict = pk.load(f)
-# f.close()
-
-# f = open('../saved_dictionaries/avnu.p', 'r')
-# avnu_dict = pk.load(f)
-# f.close()
-
-f = open('../saved_dictionaries/null-graph-av2u.p', 'r')
+f = open('../saved_dictionaries/av2u.p', 'r')
 av2u_dict = pk.load(f)
 f.close()
 
-f = open('../saved_dictionaries/null-graph-au.p', 'r')
+f = open('../saved_dictionaries/au.p', 'r')
 au_dict = pk.load(f)
 f.close()
 
-f = open('../saved_dictionaries/null-graph-avnu.p', 'r')
+f = open('../saved_dictionaries/avnu.p', 'r')
 avnu_dict = pk.load(f)
 f.close()
+
+# f = open('../saved_dictionaries/null-graph-av2u.p', 'r')
+# av2u_dict = pk.load(f)
+# f.close()
+
+# f = open('../saved_dictionaries/null-graph-au.p', 'r')
+# au_dict = pk.load(f)
+# f.close()
+
+# f = open('../saved_dictionaries/null-graph-avnu.p', 'r')
+# avnu_dict = pk.load(f)
+# f.close()
 
 # f = open('../saved_dictionaries/av2u_repeat.p', 'r')
 # av2u_repeat_dict = pk.load(f)
@@ -155,12 +154,12 @@ thetas = list(np.arange(0.0, 1., 0.05))
 p_vu_l = []
 name_l = ['bernoulli', 'jaccard']
 TP_l, FN_l, FP_l, TN_l = [], [], [], []
-p_vu_l.append(bernoulli(av2u_dict, au_dict, None, lam=1))
+p_vu_l.append(bernoulli(av2u_dict, au_dict, None, lam=0))
 # p_vu_l.append(bernoulli(av2u_dict, au_dict, av2u_repeat_dict, lam=0))
 p_vu_l.append(jaccard(av2u_dict, au_dict, avnu_dict))
 for p_vu, n in zip(p_vu_l, name_l):
-	# f = open('../saved_dictionaries/weights-' + n + '.p', 'w')
-	f = open('../saved_dictionaries/weights-blind-' + n + '.p', 'w')
+	f = open('../saved_dictionaries/weights-' + n + '.p', 'w')
+	# f = open('../saved_dictionaries/weights-blind-' + n + '.p', 'w')
 
 	pk.dump(p_vu, f)
 	f.close()

@@ -21,17 +21,31 @@ def getAnInfluenceSet(G, weights, nodeIds, defaultWeight=0.0):
     
     while len(scheduled) > 0:
         randomNodeId = scheduled.pop()  # Doesn't matter how nodes are scheduled to influence
-        randomNode = G.GetNI(randomNodeId)
-        for i in range(0, randomNode.GetOutDeg()):
-            neighborNodeId = randomNode.GetOutNId(i)
-            if neighborNodeId in influenceSet:  # Each node can only be influenced and scheduled once
+        if G is None:
+            if randomNodeId not in weights:
                 continue
-            
-            probOfInfluence = weights.get((randomNodeId, neighborNodeId), defaultWeight)
-            trial = random.random()
-            if trial < probOfInfluence:
-                scheduled.add(neighborNodeId)
-                influenceSet.add(neighborNodeId)
+            for v in weights[randomNodeId]:
+                if v in influenceSet:
+                    continue
+                probOfInfluence = weights[randomNodeId][v]
+                trial = random.random()
+                if trial < probOfInfluence:
+                    scheduled.add(v)
+                    influenceSet.add(v)
+        else:
+            if not G.IsNode(randomNodeId): #why? something about blind greedy is broken, thats why
+                continue
+            randomNode = G.GetNI(randomNodeId)
+            for i in range(0, randomNode.GetOutDeg()):
+                neighborNodeId = randomNode.GetOutNId(i)
+                if neighborNodeId in influenceSet:  # Each node can only be influenced and scheduled once
+                    continue
+                
+                probOfInfluence = weights.get((randomNodeId, neighborNodeId), defaultWeight)
+                trial = random.random()
+                if trial < probOfInfluence:
+                    scheduled.add(neighborNodeId)
+                    influenceSet.add(neighborNodeId)
             
     return influenceSet
 
@@ -78,22 +92,30 @@ def hill_climb(G, weights, k, num_trials=100):
     return S
 
 def CELF(G, weights, k, num_trials=100):
-    assert k < G.GetNodes()
     S = []
     Q = []
-    for node in G.Nodes():
-        u = node.GetId()
-        u_mg = computeAverageInfluenceSetSize(G, weights, set([u]), num_trials)
-        u_updated = 0
-        heappush(Q, (-u_mg, u, u_updated)) #push the negative marginal gain since heappush is min heap implementation
-
+    print "Entering CELF algorithm"
+    if G is None:
+        print "Number of nodes in weights: {}".format(len(weights))
+        for u in weights:
+            u_mg = computeAverageInfluenceSetSize(None, weights, set([u]), num_trials)
+            u_updated = 0
+            heappush(Q, (-u_mg, u, u_updated)) #push the negative marginal gain since heappush is min heap implementation
+    else:
+        for node in G.Nodes():
+            u = node.GetId()
+            u_mg = computeAverageInfluenceSetSize(G, weights, set([u]), num_trials)
+            u_updated = 0
+            heappush(Q, (-u_mg, u, u_updated)) #push the negative marginal gain since heappush is min heap implementation
+    f_S = 0
     while len(S) < k:
         u_mg, u, u_updated = heappop(Q)
         if u_updated == len(S):
             S.append(u)
+            f_S -= u_mg #u_mg is the negative marginal gain
             print "Found node {} in influence set".format(len(S))
         else:
-            u_mg = computeAverageInfluenceSetSize(G, weights, set(S).union(set([u])), num_trials)
+            u_mg = computeAverageInfluenceSetSize(G, weights, set(S).union(set([u])), num_trials) - f_S
             u_updated = len(S)
             heappush(Q, (-u_mg, u, u_updated))
     return S

@@ -3,6 +3,7 @@ import numpy as np
 import geopy.distance
 from collections import defaultdict
 import cPickle as pk
+import random
 
 #make sure each location is (LATITUDE, LONGITUDE)
 def get_distance_km(location_1, location_2):
@@ -52,13 +53,31 @@ def get_graph_slice(G, weights, weights_blind, checkin_data_filename, query_loca
 	sliced_users = set([node.GetId() for node in G_prime.Nodes()])
 	sliced_weights = {}
 	for u,v in weights:
-		if u in sliced_users and v in sliced_users:
+		if u in sliced_users and v in sliced_users and weights[(u,v)] > 0:
 			sliced_weights[(u,v)] = weights[(u,v)]
 
 	sliced_weights_blind = {}
 	for u,v in weights_blind:
 			if u in sliced_users and v in sliced_users:
 				sliced_weights_blind[(u,v)] = weights_blind[(u,v)]
+	###give each user k random friends in this network
+	def select_randomly(weights, k=10):
+		weights_map = defaultdict(lambda: defaultdict(float))
+		for (u,v), w in weights.iteritems():
+			weights_map[u][v] = w
+
+		weights_map_filtered = defaultdict(dict)
+		for u in weights_map:
+			neighbors = weights_map[u].keys()
+			random.shuffle(neighbors)
+			neighbors = neighbors[:k]
+			for v in neighbors:
+				weights_map_filtered[u][v] = weights_map[u][v]
+		print "After selecting neighbors, {} nodes in weight map".format(len(weights_map_filtered))
+		return weights_map_filtered
+
+	sliced_weights_blind = select_randomly(sliced_weights_blind, 5)
+
 	return G_prime, sliced_weights, sliced_weights_blind
 
 # slice_name = '../data/sliced_graph.txt'
