@@ -42,7 +42,6 @@ def compare_true_versus_inferred(G, G_prime):
     print "F1 score: {}".format(F1_score)
     return F1_score
 
-
 def plot_threshold_against_f1(G, weights, steps, name):
     thresholds = []
     f1_scores = []
@@ -87,10 +86,11 @@ def edit_graph(weights, G, threshold):
         return G
 
 slice_name = '../data/sliced_graph.txt'
-weights_name = '../saved_dictionaries/weights-bernoulli.p'
-f = open(weights_name, 'r')
 G = snap.LoadEdgeList(snap.PUNGraph, slice_name)
+
+weights_name = '../saved_dictionaries/sliced_predicted_weights.p'
+f = open(weights_name, 'r')
 weights = pk.load(f)
 f.close()
 
-plot_threshold_against_f1(G, weights, 50, 'sliced')
+plot_threshold_against_f1(G, weights, 100, 'sliced')

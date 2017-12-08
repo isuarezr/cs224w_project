@@ -2,6 +2,7 @@ import snap
 import numpy as np
 import geopy.distance
 from collections import defaultdict
+import cPickle as pk
 
 #make sure each location is (LATITUDE, LONGITUDE)
 def get_distance_km(location_1, location_2):
@@ -36,7 +37,7 @@ def compute_user_location(locations):
 	return (latitude, longitude)
 
 #return a slice of G based on the query location
-def get_graph_slice(G, weights, checkin_data_filename, query_location, max_distance):
+def get_graph_slice(G, weights, weights_blind, checkin_data_filename, query_location, max_distance):
 	user_locations = get_user_locations(checkin_data_filename)
 	user_distance_pairs = [(user, get_distance_km(query_location, user_locations[user])) for user in user_locations]
 	far_users = [user for user, dist in user_distance_pairs if dist > max_distance]
@@ -54,4 +55,26 @@ def get_graph_slice(G, weights, checkin_data_filename, query_location, max_dista
 		if u in sliced_users and v in sliced_users:
 			sliced_weights[(u,v)] = weights[(u,v)]
 
-	return G_prime, sliced_weights
+	sliced_weights_blind = {}
+	for u,v in weights_blind:
+			if u in sliced_users and v in sliced_users:
+				sliced_weights_blind[(u,v)] = weights_blind[(u,v)]
+	return G_prime, sliced_weights, sliced_weights_blind
+
+# slice_name = '../data/sliced_graph.txt'
+# G = snap.LoadEdgeList(snap.PUNGraph, '../data/Brightkite_edges.txt')
+# weights_name = '../saved_dictionaries/predicted_weights.p'
+# f = open(weights_name, 'r')
+# weights = pk.load(f)
+# f.close()
+# checkin_data_filename = '../data/Brightkite_totalCheckins.txt'
+# query_location = (41.67, -72.14)
+# max_distance = 500
+# G_prime, weights_prime = get_graph_slice(G, weights, checkin_data_filename, query_location, max_distance)
+# snap.SaveEdgeList(G_prime, slice_name)
+# G_prime = snap.LoadEdgeList(snap.PUNGraph, slice_name) #easiest way to get rid of 0 degree nodes
+
+# weights_slice_name = '../saved_dictionaries/sliced_predicted_weights.p'
+# f = open(weights_slice_name, 'w')
+# pk.dump(weights_prime, f)
+# f.close()

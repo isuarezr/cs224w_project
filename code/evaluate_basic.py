@@ -4,11 +4,8 @@ from collections import defaultdict, Counter
 import matplotlib.pyplot as plt
 import cPickle as pk
 
-<<<<<<< HEAD
-def bernoulli(G, av2u_dict, au_dict, av2u_repeat=None, lam=0):
-=======
-def bernoulli(av2u_dict, au_dict, lam=0):
->>>>>>> dc9eb16a90492ee0da6cd1d72799b3f6d4ba8974
+
+def bernoulli(av2u_dict, au_dict, av2u_repeat=None, lam=0):
 	p_vu = defaultdict(float)
 	for (v,u) in av2u_dict:
 		if au_dict[v] > 1:
@@ -145,9 +142,9 @@ f = open('../saved_dictionaries/null-graph-avnu.p', 'r')
 avnu_dict = pk.load(f)
 f.close()
 
-f = open('../saved_dictionaries/av2u_repeat.p', 'r')
-av2u_repeat_dict = pk.load(f)
-f.close()
+# f = open('../saved_dictionaries/av2u_repeat.p', 'r')
+# av2u_repeat_dict = pk.load(f)
+# f.close()
 
 
 theta_step = 0.05
@@ -158,11 +155,13 @@ thetas = list(np.arange(0.0, 1., 0.05))
 p_vu_l = []
 name_l = ['bernoulli', 'jaccard']
 TP_l, FN_l, FP_l, TN_l = [], [], [], []
-# p_vu_l.append(bernoulli(G, av2u_dict, au_dict, None, lam=1))
-p_vu_l.append(bernoulli(G, av2u_dict, au_dict, av2u_repeat_dict, lam=0))
-p_vu_l.append(jaccard(G, av2u_dict, au_dict, avnu_dict))
+p_vu_l.append(bernoulli(av2u_dict, au_dict, None, lam=1))
+# p_vu_l.append(bernoulli(av2u_dict, au_dict, av2u_repeat_dict, lam=0))
+p_vu_l.append(jaccard(av2u_dict, au_dict, avnu_dict))
 for p_vu, n in zip(p_vu_l, name_l):
-	f = open('../saved_dictionaries/weights-' + n + '.p', 'w')
+	# f = open('../saved_dictionaries/weights-' + n + '.p', 'w')
+	f = open('../saved_dictionaries/weights-blind-' + n + '.p', 'w')
+
 	pk.dump(p_vu, f)
 	f.close()
 	TP, FN, FP, TN = evaluate_basic(G, test_data, p_vu, thetas, au_dict)
