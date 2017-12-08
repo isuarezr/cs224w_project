@@ -108,5 +108,4 @@ def compare_methods(G, weights, max_k):
 	plt.savefig("methods_comparison.png")
 	plt.show()
 
-
 compare_methods(G_prime, weights_prime, 50)
