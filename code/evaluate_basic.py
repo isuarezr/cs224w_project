@@ -4,11 +4,7 @@ from collections import defaultdict, Counter
 import matplotlib.pyplot as plt
 import cPickle as pk
 
-<<<<<<< HEAD
 def bernoulli(G, av2u_dict, au_dict, av2u_repeat=None, lam=0):
-=======
-def bernoulli(av2u_dict, au_dict, lam=0):
->>>>>>> dc9eb16a90492ee0da6cd1d72799b3f6d4ba8974
 	p_vu = defaultdict(float)
 	for (v,u) in av2u_dict:
 		if au_dict[v] > 1:
