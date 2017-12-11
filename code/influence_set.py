@@ -33,7 +33,7 @@ def getAnInfluenceSet(G, weights, nodeIds, defaultWeight=0.0):
                     scheduled.add(v)
                     influenceSet.add(v)
         else:
-            if not G.IsNode(randomNodeId): #why? something about blind greedy is broken, thats why
+            if not G.IsNode(randomNodeId):
                 continue
             randomNode = G.GetNI(randomNodeId)
             for i in range(0, randomNode.GetOutDeg()):
