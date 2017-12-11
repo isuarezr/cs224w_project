@@ -7,7 +7,10 @@ import random
 
 #make sure each location is (LATITUDE, LONGITUDE)
 def get_distance_km(location_1, location_2):
-	return geopy.distance.vincenty(location_1, location_2).km
+	try:
+		return geopy.distance.vincenty(location_1, location_2).km
+	except:
+		return geopy.distance.great_circle(location_1, location_2).km
 
 #return longitude, latitude where we think each user lives
 def get_user_locations(checkin_data_filename):
