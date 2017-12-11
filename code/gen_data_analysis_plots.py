@@ -11,10 +11,12 @@ def plot_degree_distribution(G, name):
 	freqs = Counter(degrees)
 	x = sorted(freqs.keys())
 	y = [freqs[val] for val in x]
-	plt.title("Degree distribution for {} social network".format(name))
-	plt.xlabel("Number of users")
-	plt.ylabel("Number of friends")
-	plt.loglog(x,y)
+	cumulative = np.cumsum(y)
+	cumulative = cumulative / float(np.sum(y))
+	plt.title("Cumulative degree distribution for {} social network".format(name))
+	plt.xlabel("Number of friends")
+	plt.ylabel("Proportion of nodes")
+	plt.semilogx(x,cumulative)
 	plt.savefig("{}_deg_dist.png".format(name))
 	plt.show()
 
@@ -26,10 +28,12 @@ def plot_visits_per_loc(data, name):
 	freqs = Counter(visits)
 	x = sorted(freqs.keys())
 	y = [freqs[val] for val in x]
-	plt.title("Distribution of unique user visits for {} locations".format(name))
+	cumulative = np.cumsum(y)
+	cumulative = cumulative / float(np.sum(y))
+	plt.title("Cumulative distribution of unique user visits for {} locations".format(name))
 	plt.xlabel("Number of unique user visits")
-	plt.ylabel("Number of locations")
-	plt.loglog(x,y)
+	plt.ylabel("Proportion of locations")
+	plt.semilogx(x,cumulative)
 	plt.savefig("{}_user_visits_to_loc.png".format(name))
 	plt.show()
 
@@ -41,22 +45,24 @@ def plot_visits_per_user(data, name):
 	freqs = Counter(visits)
 	x = sorted(freqs.keys())
 	y = [freqs[val] for val in x]
-	plt.title("Distribution of unique location visits for {} users".format(name))
-	plt.xlabel("Number of users")
-	plt.ylabel("Number of unique locations visisted")
-	plt.loglog(x,y)
+	cumulative = np.cumsum(y)
+	cumulative = cumulative / float(np.sum(y))
+	plt.title("Cumulative distribution of unique location visits for {} users".format(name))
+	plt.xlabel("Number of unique locations visited")
+	plt.ylabel("Proportion of users")
+	plt.semilogx(x,cumulative)
 	plt.savefig("{}_location_visits_for_users.png".format(name))
 	plt.show()
 
 name = 'Brightkite'
-socialGraphFilename = 'Brightkite_edges.txt'
-checkinFilename = "Brightkite_totalCheckins.txt"
+socialGraphFilename = '../data/Brightkite_edges.txt'
+checkinFilename = "../data/Brightkite_totalCheckins.txt"
 usecols = [0,1,4]
 user_id_idx = 0
 timestamp_idx = 1
 location_id_idx = 2
 
-savefile = 'saved_{}.npy'.format(name)
+savefile = '../data/saved_{}.npy'.format(name)
 if os.path.isfile(savefile):
 	data = np.load(savefile)
 else:
@@ -66,6 +72,6 @@ else:
 	np.save(savefile, data)
 
 G = snap.LoadEdgeList(snap.PUNGraph, socialGraphFilename)
-plot_degree_distribution(G, name)
-plot_visits_per_loc(data, name)
+# plot_degree_distribution(G, name)
+# plot_visits_per_loc(data, name)
 plot_visits_per_user(data, name)

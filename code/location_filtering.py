@@ -7,7 +7,7 @@ import random
 
 #make sure each location is (LATITUDE, LONGITUDE)
 def get_distance_km(location_1, location_2):
-	return geopy.distance.vincenty(location_1, location_2)
+	return geopy.distance.vincenty(location_1, location_2).km
 
 #return longitude, latitude where we think each user lives
 def get_user_locations(checkin_data_filename):
@@ -80,20 +80,27 @@ def get_graph_slice(G, weights, weights_blind, checkin_data_filename, query_loca
 
 	return G_prime, sliced_weights, sliced_weights_blind
 
-# slice_name = '../data/sliced_graph.txt'
-# G = snap.LoadEdgeList(snap.PUNGraph, '../data/Brightkite_edges.txt')
-# weights_name = '../saved_dictionaries/predicted_weights.p'
-# f = open(weights_name, 'r')
-# weights = pk.load(f)
-# f.close()
-# checkin_data_filename = '../data/Brightkite_totalCheckins.txt'
-# query_location = (41.67, -72.14)
-# max_distance = 500
-# G_prime, weights_prime = get_graph_slice(G, weights, checkin_data_filename, query_location, max_distance)
-# snap.SaveEdgeList(G_prime, slice_name)
-# G_prime = snap.LoadEdgeList(snap.PUNGraph, slice_name) #easiest way to get rid of 0 degree nodes
 
-# weights_slice_name = '../saved_dictionaries/sliced_predicted_weights.p'
-# f = open(weights_slice_name, 'w')
-# pk.dump(weights_prime, f)
-# f.close()
+def slice_users(user_locations, query_location, max_distance):
+	user_distance_pairs = [(user, get_distance_km(query_location, user_locations[user])) for user in user_locations]
+	nearby_users = [user for user, dist in user_distance_pairs if dist <= max_distance]
+	return nearby_users
+
+def slice_graph(G, nearby_users):
+	V = snap.TIntV()
+	nearby_users = set(nearby_users)
+	for node in G.Nodes():
+		if node.GetId() not in nearby_users:
+			V.Add(node.GetId())
+	G_prime = snap.ConvertGraph(type(G), G)
+	old_G_size = G.GetNodes()
+	snap.DelNodes(G_prime, V)
+	assert G.GetNodes() == old_G_size
+	return G_prime
+
+def slice_weights(weights, nearby_users):
+	sliced_weights = {}
+	for u,v in weights:
+		if u in nearby_users and v in nearby_users:
+			sliced_weights[(u,v)] = weights[(u,v)]
+	return sliced_weights
