@@ -12,8 +12,8 @@ timestamp_idx = 1
 location_id_idx = 2
 
 data = np.load(data_savefile)
-# G = snap.LoadEdgeList(snap.PUNGraph, socialGraphFilename)
-G = None
+G = snap.LoadEdgeList(snap.PUNGraph, socialGraphFilename)
+# G = None
 
 ### LEARNING PHASE 1
 def learning_phase_1(G, data, single_influence=True):
@@ -102,8 +102,7 @@ def learning_phase_2(G, data, tau):
 	infl_u = {user:len(infl_u[user]) for user in infl_u}
 	return Av2u_tau, credit_tau, infl_u
 
-# dicts = learning_phase_1(G, data)
-dicts = learning_phase_1(G, data, single_influence=False)
+dicts = learning_phase_1(G, data, single_influence=True)
 print "Finished learning phase 1"
 names = ['au.p', 'av2u.p', 'avnu.p', 'tau.p', 'credit.p', 'av2u_repeat.p']
 if G is None:
